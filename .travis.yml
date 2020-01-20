@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t snigy/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true snigy/react-test npm test
+
+after_success:
+  - docker build -t snigy/multi-client ./client
+  - docker build -t snigy/multi-nginx ./nginx
+  - docker build -t snigy/multi-server ./server
+  - docker build -t snigy/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push snigy/multi-client
+  - docker push snigy/multi-nginx
+  - docker push snigy/multi-server
+  - docker push snigy/multi-worker
